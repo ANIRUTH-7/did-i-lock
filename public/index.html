@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Did I Lock? — leave home in 10 seconds</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#070b16" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<!-- animated aurora backdrop (shared by auth + app) -->
+<div class="aurora-bg" aria-hidden="true">
+  <i class="a1"></i><i class="a2"></i><i class="a3"></i><i class="a4"></i>
+  <span class="star" style="left:8%;top:18%"></span><span class="star" style="left:16%;top:64%"></span>
+  <span class="star" style="left:24%;top:34%"></span><span class="star" style="left:33%;top:76%"></span>
+  <span class="star" style="left:41%;top:12%"></span><span class="star" style="left:52%;top:52%"></span>
+  <span class="star" style="left:60%;top:26%"></span><span class="star" style="left:68%;top:70%"></span>
+  <span class="star" style="left:76%;top:40%"></span><span class="star" style="left:84%;top:16%"></span>
+  <span class="star" style="left:90%;top:58%"></span><span class="star" style="left:12%;top:88%"></span>
+  <span class="star" style="left:47%;top:86%"></span><span class="star" style="left:72%;top:90%"></span>
+</div>
+
+<!-- cinematic per-page background -->
+<div id="page-bg" aria-hidden="true"></div>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen" class="auth hidden">
+  <div class="auth-bg" aria-hidden="true">
+    <img class="auth-bg-img" src="/img/auth-hero.png" alt="" />
+    <div class="auth-bg-veil"></div>
+  </div>
+  <div class="auth-wrap">
+    <div class="auth-head">
+      <div class="brand-lg">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-1.8"/><circle cx="12" cy="15.5" r="1"/></svg>
+        </span>
+        <span class="brand-name">Did&nbsp;I&nbsp;Lock?</span>
+      </div>
+      <h1>Step out.<br>Locked in. Every&nbsp;time.</h1>
+      <p class="auth-sub">The 10-second pre-departure ritual — with a check-in ping that closes the loop so you can stop wondering.</p>
+      <div class="auth-pills">
+        <span class="auth-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"/></svg>One tap per check</span>
+        <span class="auth-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>5-min check-in</span>
+        <span class="auth-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Knows your home zone</span>
+      </div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs" role="tablist">
+        <button id="tab-login" class="auth-tab active" type="button">Sign in</button>
+        <button id="tab-register" class="auth-tab" type="button">Create account</button>
+      </div>
+
+      <!-- ======== SIGN IN: three methods ======== -->
+      <div id="signin-wrap">
+        <div class="method-tabs" role="tablist">
+          <button class="method-tab active" type="button" data-m="email"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>Email</button>
+          <button class="method-tab" type="button" data-m="phone"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span>Phone</button>
+          <button class="method-tab" type="button" data-m="google"><span class="g-mini"><svg viewBox="0 0 48 48" width="14" height="14"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></span>Google</button>
+        </div>
+
+        <!-- Email + password -->
+        <form id="form-login" class="auth-form" novalidate>
+          <label class="field"><span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+          </label>
+          <label class="field"><span>Password</span>
+            <div class="pw-wrap">
+              <input type="password" name="password" id="login-pw" placeholder="Your password" autocomplete="current-password" required />
+              <button type="button" class="pw-eye" id="pw-eye" title="Show password"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+            </div>
+          </label>
+          <div class="auth-err" id="login-err"></div>
+          <button class="btn btn-primary btn-block" type="submit" id="login-btn">Sign in</button>
+          <div style="text-align:right;margin-top:10px">
+            <button type="button" class="linkish" id="forgot-link">Forgot password?</button>
+          </div>
+
+          <!-- password reset via phone OTP -->
+          <div id="reset-panel" class="hidden">
+            <div class="reset-box">
+              <div class="reset-title">Reset your password</div>
+              <div id="reset-step1">
+                <label class="field"><span>Phone linked to your account</span>
+                  <input type="tel" id="reset-phone" placeholder="+91 98765 43210" inputmode="tel" />
+                </label>
+                <button class="btn btn-soft btn-block" type="button" id="reset-send">Send reset code</button>
+              </div>
+              <div id="reset-step2" class="hidden">
+                <label class="field"><span>6-digit code</span>
+                  <input type="text" id="reset-code" class="code-input" placeholder="······" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+                </label>
+                <label class="field"><span>New password</span>
+                  <input type="password" id="reset-pw" placeholder="At least 6 characters" autocomplete="new-password" />
+                </label>
+                <label class="field"><span>Confirm new password</span>
+                  <input type="password" id="reset-pw2" placeholder="Repeat it" autocomplete="new-password" />
+                </label>
+                <button class="btn btn-primary btn-block" type="button" id="reset-do">Reset password</button>
+              </div>
+              <div id="reset-done" class="hidden" style="text-align:center;padding:6px 0 2px">
+                <div style="color:var(--ok);font-weight:700">✓ Password reset</div>
+                <p class="auth-fine" style="margin-top:4px">Use your new password to sign in below.</p>
+              </div>
+              <div class="auth-err" id="reset-err"></div>
+              <div id="reset-sms" class="sms-bubble hidden">
+                <div class="sms-head">Demo SMS → <span id="reset-sms-to"></span> <span class="sms-tag">no real SMS sent</span></div>
+                <div class="sms-body" id="reset-sms-body"></div>
+              </div>
+              <button type="button" class="linkish" id="reset-cancel" style="display:block;margin:10px auto 0">← Back to sign in</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Phone OTP -->
+        <div id="method-phone" class="auth-form hidden">
+          <label class="field"><span>Phone number</span>
+            <input type="tel" id="phone-input" placeholder="+91 98765 43210" inputmode="tel" autocomplete="tel" />
+          </label>
+          <div class="auth-err" id="phone-err"></div>
+          <div id="phone-step1">
+            <button class="btn btn-primary btn-block" type="button" id="send-code-btn">Send code</button>
+            <p class="auth-fine">We’ll text you a 6-digit code. No password needed.</p>
+          </div>
+          <div id="phone-step2" class="hidden">
+            <label class="field"><span>6-digit code</span>
+              <input type="text" id="code-input" class="code-input" placeholder="······" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+            </label>
+            <button class="btn btn-primary btn-block" type="button" id="verify-code-btn">Verify &amp; sign in</button>
+            <div class="resend-row">
+              <span class="muted small" id="resend-timer">Resend in 30s</span>
+              <button type="button" class="linkish" id="resend-btn" disabled>Resend code</button>
+            </div>
+          </div>
+          <div id="sms-bubble" class="sms-bubble hidden">
+            <div class="sms-head">Demo SMS → <span id="sms-to"></span> <span class="sms-tag">no real SMS sent</span></div>
+            <div class="sms-body" id="sms-body"></div>
+          </div>
+        </div>
+
+        <!-- Google -->
+        <div id="method-google" class="auth-form hidden">
+          <button class="google-btn" type="button" id="google-btn">
+            <svg viewBox="0 0 48 48" width="20" height="20"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Continue with Google
+          </button>
+          <p class="auth-fine">Sign in with your Google account — your checks and history are linked to it, so you pick up right where you left off, on any device.</p>
+        </div>
+
+        <button type="button" class="guest-btn" id="guest-btn"><span class="gb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span><b>Just looking?</b> Try it as a guest — no sign-up, stays on this device</span><span class="try-go">Go</span></button>
+        <div class="or-divider"><span>try with demo data</span></div>
+        <div class="demo-try">
+          <button type="button" class="try-chip" id="try-email"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span><b>demo@didilock.app</b><small>password demo1234</small></span><span class="try-go">Try</span></button>
+          <button type="button" class="try-chip" id="try-phone"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span><span><b>+91 98765 43210</b><small>OTP shown in-app</small></span><span class="try-go">Try</span></button>
+          <button type="button" class="try-chip" id="try-google"><span class="g-mini"><svg viewBox="0 0 48 48" width="13" height="13"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></span><span><b>Ash R. via Google</b><small>same demo data</small></span><span class="try-go">Try</span></button>
+        </div>
+      </div>
+
+      <!-- ======== CREATE ACCOUNT ======== -->
+      <form id="form-register" class="auth-form hidden" novalidate>
+        <label class="field"><span>Name</span>
+          <input type="text" name="name" placeholder="Ash R." autocomplete="name" required />
+        </label>
+        <label class="field"><span>Email</span>
+          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+        </label>
+        <label class="field"><span>Password</span>
+          <input type="password" name="password" placeholder="At least 6 characters" autocomplete="new-password" required />
+        </label>
+        <div class="auth-err" id="register-err"></div>
+        <button class="btn btn-primary btn-block" type="submit" id="register-btn">Create account</button>
+        <p class="auth-fine">You can add a phone number later in Settings — it unlocks the OTP sign-in method. Your checks, history and home location are stored against this account and restored after any reinstall.</p>
+      </form>
+    </div>
+    <p class="auth-foot">Did I Lock? · a tiny app for a very common panic</p>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-shell" class="shell hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-1.8"/><circle cx="12" cy="15.5" r="1"/></svg>
+      </span>
+      <span class="brand-name">Did&nbsp;I&nbsp;Lock?</span>
+    </div>
+    <nav class="side-nav" id="side-nav">
+      <a href="#/dashboard" class="side-link" data-route="dashboard"><span class="ic"></span>Dashboard</a>
+      <a href="#/checks" class="side-link" data-route="checks"><span class="ic"></span>My checks</a>
+      <a href="#/tasks" class="side-link" data-route="tasks"><span class="ic"></span>Tasks</a>
+      <a href="#/departures" class="side-link" data-route="departures"><span class="ic"></span>Departures</a>
+      <a href="#/activity" class="side-link" data-route="activity"><span class="ic"></span>Activity</a>
+      <a href="#/settings" class="side-link" data-route="settings"><span class="ic"></span>Settings</a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user" id="side-user"></div>
+      <button class="side-signout" id="signout-btn" title="Sign out"><span class="ic"></span>Sign out</button>
+    </div>
+  </aside>
+  <div class="scrim hidden" id="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" aria-label="Menu"><span class="ic"></span></button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="xp-pill" id="xp-pill" title="Your XP — safe launches, check-ins and streaks earn more"><span class="xp-star">✦</span><span><b id="xp-num">0</b>&nbsp;XP</span></div>
+        <div class="loc-pill" id="loc-pill" title="Live location status">
+          <span class="loc-dot" id="loc-dot"></span><span id="loc-text">Location off</span>
+        </div>
+        <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span>
+        </button>
+        <button class="icon-btn bell-btn" id="bell-btn" aria-label="Notifications">
+          <span class="ic"></span><span class="bell-dot hidden" id="bell-dot"></span>
+        </button>
+      </div>
+    </header>
+    <div class="view" id="view"></div>
+  </main>
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Primary">
+    <a href="#/dashboard" data-bn="dashboard"><span class="bic"></span><span class="bl">Home</span></a>
+    <a href="#/checks" data-bn="checks"><span class="bic"></span><span class="bl">Checks</span></a>
+    <a href="#/tasks" data-bn="tasks"><span class="bic"></span><span class="bl">Tasks</span></a>
+    <a href="#/departures" data-bn="departures"><span class="bic"></span><span class="bl">History</span></a>
+    <a href="#/settings" data-bn="settings"><span class="bic"></span><span class="bl">Settings</span></a>
+  </nav>
+</div>
+
+<!-- overlay + toast roots -->
+<div id="overlay-root"></div>
+<div id="toasts"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
