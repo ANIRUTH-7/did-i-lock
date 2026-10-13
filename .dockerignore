@@ -1,0 +1,8 @@
+node_modules
+data
+.git
+shots-review
+test
+/tmp
+*.log
+.DS_Store

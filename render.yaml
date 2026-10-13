@@ -1,0 +1,24 @@
+# --- Render.com blueprint: repo → live app with persistent database disk ---
+# Deploy: Render dashboard → New → Blueprint → pick this repo. That's it.
+services:
+  - type: web
+    name: did-i-lock
+    runtime: node
+    plan: starter            # paid plan = persistent disk survives redeploys
+    region: singapore        # closest region to India on Render
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/stats
+    envVars:
+      - key: DIL_DATA_DIR
+        value: /var/data
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "1"
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: dil-data
+      mountPath: /var/data
+      sizeGB: 1

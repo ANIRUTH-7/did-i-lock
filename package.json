@@ -1,0 +1,23 @@
+{
+  "name": "did-i-lock",
+  "version": "1.3.1",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "node --test test/api.js",
+    "start": "node server/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "sharp": "^0.35.5",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.43.1"
+  }
+}
