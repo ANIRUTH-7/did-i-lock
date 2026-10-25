@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "engines": { "node": ">=20" },
+  "name": "did-i-lock",
+  "version": "1.5.13",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "node --test test/api.js",
+    "start": "node server/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "description": "",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "compression": "^1.8.2",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.43.1"
+  }
+}
