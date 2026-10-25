@@ -31,14 +31,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
+      - run: npm install # puppeteer's postinstall downloads the MATCHING Chrome build itself
       - name: Browser dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
-            $(if apt-cache show libasound2t64 >/dev/null 2>&1; then echo libasound2t64; else echo libasound2; fi) # 24.04 renamed the alsa lib
-      - name: Install Chrome for puppeteer
-        run: npx puppeteer browsers install chrome
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 $(if apt-cache show libasound2t64 >/dev/null 2>&1; then echo libasound2t64; else echo libasound2; fi)
       - name: Start app fresh (the suite owns the OTP buckets)
         run: |
           DIL_SEED_DEMO=1 node server/index.js &
