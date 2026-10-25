@@ -1,0 +1,57 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - name: Syntax check
+        run: |
+          node --check server/index.js
+          node --check server/db.js
+          node --check public/app.js
+          node --check public/sw.js
+      - name: API integration tests
+        run: node test/api.js
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+  ui-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - name: Browser dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
+            $(if apt-cache show libasound2t64 >/dev/null 2>&1; then echo libasound2t64; else echo libasound2; fi) # 24.04 renamed the alsa lib
+      - name: Install Chrome for puppeteer
+        run: npx puppeteer browsers install chrome
+      - name: Start app fresh (the suite owns the OTP buckets)
+        run: |
+          DIL_SEED_DEMO=1 node server/index.js &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && exit 0; sleep 1; done
+          echo "server did not become healthy" && exit 1
+      - name: UI browser tests
+        run: node test/ui.js
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
