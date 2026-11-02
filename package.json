@@ -2,7 +2,7 @@
   "private": true,
   "engines": { "node": ">=20" },
   "name": "did-i-lock",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "main": "server/index.js",
   "scripts": {
     "test": "node --test test/api.js",

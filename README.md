@@ -86,7 +86,7 @@ public/
   icon-*.png / icon-*.svg   app + maskable icons
   handoff.html  OAuth handoff page (one-time token → app)
 test/
-  api.js        node:test API suite — 38 tests, isolated temp DB (npm test)
+  api.js        node:test API suite — 39 tests, isolated temp DB (npm test)
   ui.js         puppeteer end-to-end — 46 checks, full user flows
 ```
 

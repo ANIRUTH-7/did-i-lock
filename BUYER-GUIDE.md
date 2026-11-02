@@ -1,6 +1,6 @@
 # 💼 BUYER-GUIDE.md — what you're buying (or selling)
 
-**"Did I Lock?"** is a feature-complete, security-hardened (v1.5.13), installable web app (PWA) that solves a universal problem — *"did I lock the door / turn off the stove?"* — with a 10-second pre-departure checklist and an automatic 5-minute check-in that closes the mental loop. It ships as a complete, tested, white-label-ready codebase.
+**"Did I Lock?"** is a feature-complete, security-hardened (v1.5.14), installable web app (PWA) that solves a universal problem — *"did I lock the door / turn off the stove?"* — with a 10-second pre-departure checklist and an automatic 5-minute check-in that closes the mental loop. It ships as a complete, tested, white-label-ready codebase.
 
 ---
 
@@ -56,7 +56,7 @@ All runtime dependencies (express, better-sqlite3, jsonwebtoken, web-push, sharp
 
 ---
 
-## Security posture (v1.5.13)
+## Security posture (v1.5.14)
 
 Audited and fixed — the four issues a production audit would find first:
 

@@ -543,6 +543,24 @@ app.post('/api/auth/password/reset', async (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- rescue: connect a Google identity to an existing password account by proving the password once ----
+app.post('/api/auth/google/claim', async (req, res) => {
+  if (hitBucket('gclaim:' + ipOf(req), 10, 60 * 60000)) return res.status(429).json({ error: 'Too many attempts — try later' });
+  const ticket = String((req.body || {}).ticket || '');
+  const t = googleLinkTickets.get(ticket);
+  if (!t || t.exp < now()) { googleLinkTickets.delete(ticket); return res.status(400).json({ error: 'This link expired — try signing in with Google again' }); }
+  const user = db.prepare('SELECT * FROM users WHERE lower(email) = lower(?)').get(t.email);
+  if (!user || user.provider !== 'password') { googleLinkTickets.delete(ticket); return res.status(400).json({ error: 'No password account found for that email' }); }
+  if (!(await verifyPassword(String((req.body || {}).password || ''), user.password_hash))) {
+    t.tries += 1;
+    if (t.tries >= 5) googleLinkTickets.delete(ticket); // five wrong passwords burn the ticket
+    return res.status(401).json({ error: 'Wrong password — use the one you sign in with by email' });
+  }
+  googleLinkTickets.delete(ticket); // single use — proven or burned
+  if (!user.google_id) db.prepare('UPDATE users SET google_id = ?, email_verified = 1 WHERE id = ?').run(t.googleId, user.id);
+  res.json({ token: signToken(user.id), user: publicUser(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)), linked: true });
+});
+
 // ---------- Google (real OAuth when configured, simulated handshake otherwise) ----------
 async function googleExchange(googleId, email, name, { allowPasswordLink = false } = {}) { // allowPasswordLink lets the demo chooser link; production requires a VERIFIED email
   let user = db.prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
@@ -584,6 +602,7 @@ app.post('/api/auth/google', async (req, res) => {
 // ---- real Google OAuth (active when GOOGLE_CLIENT_ID/SECRET are set) ----
 const oauthStates = new Map(); // state -> exp
 const googleHandoffs = new Map(); // handoff id -> { token, user, exp }
+const googleLinkTickets = new Map(); // ticket -> { googleId, email, name, tries, exp } — "connect Google to my password account" rescue flow
 app.get('/auth/google', (req, res) => {
   if (!oauthBase(req)) return res.redirect('/#google-error=not_configured');
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) return res.status(404).json({ error: 'Google OAuth is not configured on this server' });
@@ -629,7 +648,11 @@ app.get('/auth/google/callback', async (req, res) => {
     const emailVerified = info.email_verified === true || info.email_verified === 'true';
     if (!info.email || !emailVerified) return res.redirect('/#google-error=unverified_email'); // never link accounts to an unverified address
     const gx = await googleExchange(info.sub, info.email, info.name);
-    if (gx.conflict) return res.redirect('/#google-error=email_taken');
+    if (gx.conflict) { // password account with an unverified email — offer the password-proven link instead of a dead end
+      const ticket = crypto.randomBytes(24).toString('hex');
+      googleLinkTickets.set(ticket, { googleId: String(info.sub), email: String(info.email).trim(), name: String(info.name || ''), tries: 0, exp: now() + 600000 });
+      return res.redirect('/#google-link=' + ticket);
+    }
     const { user, created, linked } = gx;
     const handoff = crypto.randomBytes(16).toString('hex');
     googleHandoffs.set(handoff, { token: signToken(user.id), user: publicUser(user), created, linked, exp: now() + 60000 });
@@ -1150,6 +1173,7 @@ function sweepStale() { // housekeeping: nothing expired may linger in memory or
   for (const [k, v] of oauthStates) if (v < t) oauthStates.delete(k);
   for (const [k, v] of sseTickets) if (v.exp < t) sseTickets.delete(k);
   for (const [k, v] of googleHandoffs) if (v.exp < t) googleHandoffs.delete(k); // unconsumed handoffs still hold a login token
+  for (const [k, v] of googleLinkTickets) if (v.exp < t) googleLinkTickets.delete(k);
   try { db.prepare('DELETE FROM email_tokens WHERE used = 1 OR expires_at < ?').run(t - 7 * 86400000); } catch { /* */ }
   try { db.prepare('DELETE FROM notifications WHERE read = 1 AND created_at < ?').run(t - 90 * 86400000); } catch { /* */ } // read notices older than 90 days
 }
@@ -1163,4 +1187,4 @@ if (require.main === module) {
   process.on('SIGTERM', () => { try { srv.close(() => process.exit(0)); } catch { process.exit(0); } setTimeout(() => process.exit(0), 3000).unref?.(); });
 }
 
-module.exports = { app, start };
+module.exports = { app, start, googleLinkTickets };

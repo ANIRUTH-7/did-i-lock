@@ -2,7 +2,7 @@
 /* NOTE: run against a FRESHLY STARTED server — phone-OTP buckets (5/hour) are in-memory and this suite consumes them */
 const puppeteer = require('puppeteer');
 const fs = require('fs');
-fs.mkdirSync('/tmp/shots', { recursive: true });
+fs.mkdirSync('/tmp/shots', { recursive: true }); // the suite creates its own screenshots dir — fresh CI machines don't have it
 
 const results = [];
 const ok = (name, cond, extra = '') => { results.push({ name, pass: !!cond, extra }); console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${extra ? ' — ' + extra : ''}`); };

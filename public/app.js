@@ -367,6 +367,7 @@ async function realApi(path, { method = 'GET', body } = {}) {
   if (!res.ok) {
     const err = new Error((data && data.error) || `Request failed (${res.status})`);
     err.status = res.status; // callers can tell "dead token" (401/403) from "network/5xx"
+    err.data = data || null; // some errors carry a payload (e.g. a google link ticket)
     if (res.status === 401 && token() && !path.startsWith('/api/auth/')) sessionExpired();
     throw err;
   }
@@ -822,10 +823,52 @@ if (location.hash.startsWith('#google-error=')) {
     state_expired: 'Sign-in took too long — please try again.',
     access_denied: 'Google sign-in was cancelled.',
     server_email: 'Your Google account has no verified email we can use.',
+    email_taken: 'This email already has a password account — enter that password once and Google will connect.',
   };
   const msg = HUMAN[raw] || (raw.startsWith('http') ? raw : (HUMAN[raw.split(':')[0]] || raw));
   history.replaceState(null, '', '/');
   setTimeout(() => { showAuth(); toast({ title: 'Google sign-in failed', sub: msg, type: 'err' }); }, 400);
+}
+// rescue: Google matched an existing password account — prove the password once and they connect
+if (location.hash.startsWith('#google-link=')) {
+  const ticket = decodeURIComponent(location.hash.slice('#google-link='.length));
+  history.replaceState(null, '', '/');
+  setTimeout(() => { showAuth(); openGoogleLinkModal(ticket); }, 400);
+}
+function openGoogleLinkModal(ticket) {
+  if ($('#overlay-root').querySelector('#gl-modal')) return;
+  const el = document.createElement('div');
+  el.className = 'modal'; el.id = 'gl-modal';
+  el.innerHTML = `
+    <div class="g-card">
+      <div class="g-logo">${GOOGLE_LOGO}</div>
+      <h3>Connect Google to your account</h3>
+      <p class="g-sub">This email already signs in with a <b>password</b>. Enter that password once and Google will be connected — after this, both buttons work.</p>
+      <div style="margin:12px 0 4px"><input id="gl-pw" type="password" placeholder="Your email password" autocomplete="current-password"
+        style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:15px;background:var(--card);color:var(--ink);box-sizing:border-box" /></div>
+      <p class="g-sub" id="gl-err" style="color:var(--err,#d33)"></p>
+      <button class="btn btn-lg btn-block" id="gl-go" type="button" style="margin-top:8px">Connect Google</button>
+      <button class="btn btn-ghost btn-block" id="gl-cancel" type="button" style="margin-top:6px">Not now</button>
+    </div>`;
+  $('#overlay-root').appendChild(el);
+  $('#gl-pw').focus();
+  const close = () => el.remove();
+  $('#gl-cancel').onclick = close;
+  $('#gl-go').onclick = async () => {
+    const btn = $('#gl-go'), err = $('#gl-err');
+    err.textContent = '';
+    btn.disabled = true; btn.style.opacity = .6;
+    try {
+      const d = await api('/api/auth/google/claim', { method: 'POST', body: { ticket, password: $('#gl-pw').value } });
+      localStorage.setItem('dil_token', d.token);
+      close();
+      await enterApp(d.user);
+      toast({ title: 'Google connected ✓', sub: 'Both sign-in buttons work now', type: 'ok' });
+    } catch (e) {
+      err.textContent = e.message;
+      btn.disabled = false; btn.style.opacity = 1;
+    }
+  };
 }
 
 $('#form-register').addEventListener('submit', e => {

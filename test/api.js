@@ -763,3 +763,28 @@ test('v1.5.13: a phone-only account resets its password even when trusted networ
   // sanity: the cleanup only touches the owner's own keys — the seed account still logs in
   assert.ok((await logX('trust-seed@test.dev', 'Trust-seed9!', '198.51.113.7')).token, 'unrelated trust unaffected');
 });
+
+// ---- v1.5.14: the Google-link rescue — a password proves the merge (was a dead end: "email_taken") ----
+test("v1.5.14: google matches an unverified password account → ticket → password proves the link", async () => {
+  const regX = ip => fetch(base + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip }, body: JSON.stringify({ name: 'Linkme', email: 'linkme@test.dev', password: 'Linkme-pass9' }) }).then(r => r.json());
+  assert.ok((await regX('198.51.114.1')).token, 'password account created (email unverified)');
+  // production mints this ticket inside the OAuth callback on conflict; in tests we mint it directly (demo mode auto-links instead)
+  const { googleLinkTickets } = require('../server');
+  const TICKET = 'test-ticket-' + require('crypto').randomBytes(8).toString('hex');
+  googleLinkTickets.set(TICKET, { googleId: 'g-linkme-9', email: 'linkme@test.dev', name: 'Linkme', tries: 0, exp: Date.now() + 600000 });
+  const conflict = { link_ticket: TICKET };
+  const bad = await post('/api/auth/google/claim', { ticket: conflict.link_ticket, password: 'wrong-guess' });
+  assert.equal(bad.status, 401, 'wrong password refused');
+  const good = await post('/api/auth/google/claim', { ticket: conflict.link_ticket, password: 'Linkme-pass9' });
+  assert.equal(good.status, 200, 'correct password links the accounts');
+  assert.ok(good.token && good.linked === true, 'signed in with linked:true');
+  assert.equal(good.user.email_verified, true, 'password proof + verified Google email → account counts as verified');
+  const reuse = await post('/api/auth/google/claim', { ticket: conflict.link_ticket, password: 'Linkme-pass9' });
+  assert.equal(reuse.status, 400, 'ticket is single-use');
+  const ghost = await post('/api/auth/google/claim', { ticket: 'not-a-ticket', password: 'x' });
+  assert.equal(ghost.status, 400, 'unknown tickets rejected');
+  // from now on the Google identity signs in directly — no more conflict
+  const again = await post('/api/auth/google', { id: 'g-linkme-9', email: 'linkme@test.dev', name: 'Linkme' });
+  assert.equal(again.status, 200, 'next Google sign-in just works');
+  assert.ok(again.token && again.created === false, 'recognized the linked identity');
+});
